@@ -46,7 +46,7 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/YQisme/map-path-drawer.git
 cd map-path-drawer
 
 # 安装依赖
@@ -252,10 +252,6 @@ npm run preview
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开 Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 🙏 致谢
 
