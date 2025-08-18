@@ -324,6 +324,9 @@ interface PathData {
   pathColor: string
   lineWidth: number
   showArrows: boolean
+  // 工作流模式下的额外数据
+  workflowStep?: number
+  pathGraph?: PathGraph
 }
 
 // 路径规划相关接口
@@ -959,12 +962,28 @@ const drawArrow = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: n
 
 // 导出路径数据
 const exportPathData = () => {
+  let exportPoints: Point[] = []
+
+  // 根据当前工作流步骤决定导出哪些数据
+  if (workflowStep.value > 0) {
+    // 工作流模式下，导出 pathGraph 中的节点坐标
+    exportPoints = pathGraph.value.nodes.map((node) => node.point)
+  } else {
+    // 普通模式下，导出 points 数组
+    exportPoints = points.value
+  }
+
   const data: PathData = {
-    points: points.value,
+    points: exportPoints,
     lineColor: lineColor.value,
     pathColor: pathColor.value,
     lineWidth: lineWidth.value,
     showArrows: showArrows.value,
+    // 在工作流模式下，额外导出工作流相关数据
+    ...(workflowStep.value > 0 && {
+      workflowStep: workflowStep.value,
+      pathGraph: pathGraph.value,
+    }),
   }
 
   const jsonData = JSON.stringify(data, null, 2)
@@ -988,15 +1007,35 @@ const importPathData = () => {
 const confirmImport = () => {
   try {
     const data: PathData = JSON.parse(importData.value)
-    points.value = data.points || []
+
+    // 导入基本设置
     lineColor.value = data.lineColor || '#ff0000'
     pathColor.value = data.pathColor || '#2ecc71'
     lineWidth.value = data.lineWidth || 3
     showArrows.value = data.showArrows !== undefined ? data.showArrows : true
 
+    // 检查是否包含工作流数据
+    if (data.workflowStep && data.pathGraph) {
+      // 导入工作流数据
+      workflowStep.value = data.workflowStep
+      pathGraph.value = data.pathGraph
+
+      // 根据工作流步骤绘制相应内容
+      if (workflowStep.value === 1) {
+        drawNodesOnly()
+      } else if (workflowStep.value === 2) {
+        drawPathGraph()
+      } else if (workflowStep.value === 3) {
+        drawPathGraph()
+      }
+    } else {
+      // 导入普通点位数据
+      points.value = data.points || []
+      drawPath()
+    }
+
     showImportDialog.value = false
     importData.value = ''
-    drawPath()
   } catch {
     alert('导入数据格式错误，请检查JSON格式是否正确')
   }
